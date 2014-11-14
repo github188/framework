@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beyondsoft.thrift.server.mapper.SysModuleMapper">
+
+
+	<sql id="Base_Column_List">
+		id,parent_id,name,url,priority,iconCls,sn
+	</sql>
+
+
+	<resultMap id="BaseResultMap" type="com.beyondsoft.thrift.rpc.PageFormRPC">
+		<result column="id" property="value1" jdbcType="VARCHAR" />
+		<result column="parent_id" property="value2" jdbcType="VARCHAR" />
+		<result column="name" property="value3" jdbcType="VARCHAR" />
+		<result column="url" property="value4" jdbcType="VARCHAR" />
+		<result column="priority" property="value5" jdbcType="VARCHAR" />
+		<result column="iconCls" property="value6" jdbcType="VARCHAR" />
+		<result column="sn" property="value7" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!-- 1.1取树型菜单(根) -->
+	<select id="selectModuleRoot" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM sys_module
+		WHERE parent_id is null order by priority
+	</select>
+	
+	
+	<!-- 1.2.取树型菜单-->
+	<select id="selectModule" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM sys_module
+	    WHERE parent_id = #{id} order by priority
+	</select>
+	
+	
+	
+	<!-- 1.3判断是否有子节点-->
+	<select id="hasChildren" resultType="java.lang.Long" parameterType="java.lang.String">
+		select count(id) from sys_module where parent_id = #{pid}
+	</select>
+	
+		
+	<!-- 2 添加树型节点-->
+	<insert id="insert"  parameterType="com.beyondsoft.thrift.rpc.sysmodule.SysModule">
+		insert into sys_module(id,description,name,priority,url,parent_id,sn,iconCls) values
+		(#{id},#{description},#{name},#{priority},#{url},#{parentId},#{sn},#{iconCls})
+	</insert>
+	
+	<!-- 3.删除树型节点 -->
+	<delete id="deleteByPrimaryKey">
+		delete from sys_module
+		where id = #{id,jdbcType=VARCHAR}
+	</delete>
+	
+	<!-- 4.更新树型 -->
+	<update id="updateByPrimaryKey" parameterType="com.beyondsoft.thrift.rpc.sysmodule.SysModule">
+
+		update sys_module
+		set
+		<if test="description != null">
+			description = #{description,jdbcType=VARCHAR},
+		</if>
+		<if test="name != null">
+			name = #{name,jdbcType=VARCHAR},
+		</if>
+		
+		<if test="priority != null">
+			priority = #{priority,jdbcType=VARCHAR},
+		</if>
+		<if test="url != null">
+			url = #{url,jdbcType=VARCHAR},
+		</if>
+		<if test="parentId != null">
+			parent_id = #{parentId,jdbcType=VARCHAR},
+		</if>
+		<if test="sn != null">
+			sn = #{sn,jdbcType=VARCHAR},
+		</if>
+		<if test="iconCls != null">
+			iconCls = #{iconCls,jdbcType=VARCHAR}
+		</if>
+		where id = #{id,jdbcType=VARCHAR}
+	</update>
+	
+
+</mapper>

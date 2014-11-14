@@ -1,0 +1,1 @@
+11:04:25.962 [Thread-0] ERROR com.alibaba.druid.pool.DruidAbstractDataSource - maxIdle is deprecated

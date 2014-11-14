@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beyondsoft.thrift.server.mapper.SysUserMapper">
+
+
+	<sql id="Base_Column_List">
+		id, username, password, create_time, status, email,
+		realname, phone,org_id
+	</sql>
+
+
+	<resultMap id="UserMap" type="com.beyondsoft.thrift.rpc.sysuser.SysUser">
+		<id column="id" property="id" jdbcType="VARCHAR" />
+		<result column="username" property="username" jdbcType="VARCHAR" />
+		<result column="password" property="password" jdbcType="VARCHAR" />
+		<result column="create_time" property="create_time" jdbcType="VARCHAR" />
+		<result column="status" property="status" jdbcType="VARCHAR" />
+		<result column="email" property="email" jdbcType="VARCHAR" />
+		<result column="realname" property="realname" jdbcType="VARCHAR" />
+		<result column="phone" property="phone" jdbcType="VARCHAR" />
+		<result column="org_id" property="org_id" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!--1. 登陆校验 -->
+	<select id="selectByMap" resultMap="UserMap" parameterType="java.util.HashMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM sys_user
+		WHERE username=#{username} and password=#{password}
+	</select>
+
+
+	<resultMap id="BaseResultMap" type="com.beyondsoft.thrift.rpc.PageFormRPC">
+		<result column="id" property="value1" jdbcType="VARCHAR" />
+		<result column="NAME" property="value2" jdbcType="VARCHAR" />
+		<result column="url" property="value3" jdbcType="VARCHAR" />
+		<result column="parent_id" property="value4" jdbcType="VARCHAR" />
+		<result column="priority" property="value5" jdbcType="VARCHAR" />
+		<result column="iconCls" property="value6" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!-- 2.根据用户取模块 -->
+	<select id="selectModule" resultMap="BaseResultMap"
+		parameterType="java.util.HashMap">
+
+		SELECT tm.id, tm. NAME, tm.url, tm.parent_id,
+		tm.priority, tm.iconCls FROM
+		sys_module tm
+		RIGHT JOIN (
+		SELECT DISTINCT
+		t.id, t.realname, permission FROM sys_user t LEFT JOIN
+		sys_user_role tr
+		ON t.id = tr.user_id LEFT JOIN sys_role_permission tp
+		ON tp.role_id =
+		tr.role_id WHERE t.id = #{id} ) A ON tm.sn =
+		A.permission WHERE tm.id
+		IS NOT NULL ORDER BY tm.priority
+	</select>
+
+
+	<select id="selectByPrimaryKey" resultMap="UserMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM sys_user
+		WHERE id=#{id}
+	</select>
+
+	<!-- 3.添加用户 -->
+	<insert id="insert" parameterType="com.beyondsoft.thrift.rpc.sysuser.SysUser">
+		insert into sys_user values
+		(#{id},#{create_time},#{password},#{status},#{username},#{email},#{realname},#{phone},#{org_id})
+	</insert>
+
+	<resultMap id="selectUserByNameResultMap" type="com.beyondsoft.thrift.rpc.PageFormRPC">
+		<result column="id" property="value1" jdbcType="VARCHAR" />
+		<result column="createTime" property="value2" jdbcType="VARCHAR" />
+		<result column="status" property="value3" jdbcType="VARCHAR" />
+		<result column="username" property="value4" jdbcType="VARCHAR" />
+		<result column="email" property="value5" jdbcType="VARCHAR" />
+		<result column="realname" property="value6" jdbcType="VARCHAR" />
+		<result column="phone" property="value7" jdbcType="VARCHAR" />
+		<result column="roleName" property="value8" jdbcType="VARCHAR" />
+		<result column="orgName" property="value9" jdbcType="VARCHAR" />
+		<result column="orgId" property="value10" jdbcType="VARCHAR" />
+		<result column="troIds" property="value11" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!-- 4.用户列表 -->
+	<select id="selectUserByName" resultMap="selectUserByNameResultMap"
+		parameterType="java.util.HashMap">
+		SELECT * FROM ( SELECT IFNULL(sys_user.id, '') id,
+		create_time createTime,
+		IFNULL(STATUS, '') status, IFNULL(username, '')
+		username,
+		IFNULL(email, '') email, IFNULL(realname, '') realname,
+		IFNULL(phone,
+		'') phone, IFNULL(A.troName, '') roleName, IFNULL(tor.
+		NAME, '')
+		orgName, IFNULL(tor.id, '') orgId, IFNULL(A.troIds, '')
+		troIds FROM
+		sys_user LEFT JOIN ( SELECT t.id, GROUP_CONCAT(tro.id)
+		troIds,
+		GROUP_CONCAT(tro. NAME) troName FROM sys_user t LEFT JOIN
+		sys_user_role tr ON t.id = tr.user_id LEFT JOIN sys_role tro ON tro.id
+		= tr.role_id GROUP BY t.id ) A ON A.id = sys_user.id LEFT JOIN
+		sys_organization tor ON tor.id = sys_user.org_id ) B WHERE B.realname
+		like '%${realname}%' ORDER BY B.createTime DESC LIMIT #{page},#{rows}
+	</select>
+
+	<!-- 5.用户列表总数 -->
+	<select id="selectUserByNameCnt" resultType="java.lang.Long"
+		parameterType="java.util.HashMap">
+		SELECT count(id) FROM ( SELECT sys_user.id, create_time
+		createTime, STATUS,
+		username, email, realname, phone, IFNULL(A.troName,
+		'') roleName, tor.
+		NAME orgName,tor.id orgId,A.troIds troIds FROM
+		sys_user LEFT JOIN (
+		SELECT t.id, GROUP_CONCAT(tro. id) troIds,
+		GROUP_CONCAT(tro. NAME)
+		troName FROM sys_user t LEFT JOIN sys_user_role
+		tr ON t.id =
+		tr.user_id LEFT JOIN sys_role tro ON tro.id = tr.role_id
+		GROUP BY t.id
+		) A ON A.id = sys_user.id LEFT JOIN sys_organization tor
+		ON tor.id =
+		sys_user.org_id) B
+	</select>
+
+	<!-- 6.删除用户 -->
+	<delete id="deleteByPrimaryKey">
+		delete from sys_user
+		where id = #{id,jdbcType=VARCHAR}
+	</delete>
+
+	<!-- 7.更新用户 -->
+	<update id="updateByPrimaryKey" parameterType="com.beyondsoft.thrift.rpc.sysuser.SysUser">
+
+		update sys_user
+		set
+		<if test="username != null">
+			username = #{username,jdbcType=VARCHAR},
+		</if>
+		<if test="password != null">
+			password = #{password,jdbcType=VARCHAR},
+		</if>
+
+		<if test="email != null">
+			email = #{email,jdbcType=VARCHAR},
+		</if>
+		<if test="realname != null">
+			realname = #{realname,jdbcType=VARCHAR},
+		</if>
+		<if test="phone != null">
+			phone = #{phone,jdbcType=VARCHAR},
+		</if>
+		<if test="org_id != null">
+			org_id = #{org_id,jdbcType=VARCHAR},
+		</if>
+		<if test="status != null">
+			status = #{status,jdbcType=VARCHAR}
+		</if>
+		where id = #{id,jdbcType=VARCHAR}
+	</update>
+
+	<!-- 8.根据用户用户名取用户id 日志模块要用id -->
+
+	<select id="getSysUserId" resultMap="UserMap" parameterType="java.util.HashMap">
+		SELECT * FROM sys_user t where 1=1 and t.username=#{userName}
+	</select>
+
+</mapper>

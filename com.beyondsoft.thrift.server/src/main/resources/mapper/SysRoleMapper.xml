@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beyondsoft.thrift.server.mapper.SysRoleMapper">
+
+
+	<sql id="Base_Column_List">
+		id,name
+	</sql>
+
+	<resultMap id="RoleMap" type="com.beyondsoft.thrift.rpc.sysrole.SysRole">
+		<id column="id" property="id" jdbcType="VARCHAR" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!-- 1.添加角色 -->
+	<insert id="insert" parameterType="com.beyondsoft.thrift.rpc.sysrole.SysRole">
+		insert into sys_role values
+		(#{id},#{name},#{createTime})
+	</insert>
+
+
+	<!-- 2.修改角色 -->
+	<update id="updateByPrimaryKey" parameterType="com.beyondsoft.thrift.rpc.sysrole.SysRole">
+		update sys_role set
+		<if test="id != null"> id = #{id,jdbcType=VARCHAR},
+		</if>
+		<if test="name != null"> name = #{name,jdbcType=VARCHAR}
+		</if>
+		where id = #{id,jdbcType=VARCHAR}
+	</update>
+
+	<resultMap id="selectResultMap" type="com.beyondsoft.thrift.rpc.PageFormRPC">
+		<result column="id" property="value1" jdbcType="VARCHAR" />
+		<result column="name" property="value2" jdbcType="VARCHAR" />
+		<result column="userName" property="value3" jdbcType="VARCHAR" />
+	</resultMap>
+
+
+	<!-- 3.删除角色 -->
+	<delete id="deleteByPrimaryKey"> delete from sys_role where
+		id =
+		#{id,jdbcType=VARCHAR}
+	</delete>
+
+	<!-- 4.删除角色用户中间表 -->
+	<delete id="deleteRoleUser"> delete from sys_user_role where
+		role_id =
+		#{id,jdbcType=VARCHAR}
+	</delete>
+
+	<!-- 5.删除角色权限中间表 -->
+	<delete id="deleteRolePermission"> delete from sys_role_permission where
+		role_id =
+		#{id,jdbcType=VARCHAR}
+	</delete>
+
+	<!-- 6.角色列表 -->
+	<select id="selectByMap" resultMap="selectResultMap">
+		select
+		t.id,t.name,IFNULL(GROUP_CONCAT(tu.username),'') userName from
+		sys_role t LEFT JOIN sys_user_role tr on tr.role_id=t.id LEFT JOIN
+		sys_user tu on tu.id=tr.user_id GROUP BY t.id,t.name order by
+		createTime LIMIT #{page},#{rows}
+	</select>
+
+
+	<select id="selectByPrimaryKey" resultMap="RoleMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM sys_role
+		WHERE id=#{id}
+	</select>
+
+
+	<resultMap id="selectRoleMap" type="com.beyondsoft.thrift.rpc.sysmodule.SysModule">
+		<result column="id" property="id" jdbcType="VARCHAR" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="url" property="url" jdbcType="VARCHAR" />
+		<result column="parent_id" property="parentId" jdbcType="VARCHAR" />
+		<result column="priority" property="priority" jdbcType="VARCHAR" />
+		<result column="iconCls" property="iconCls" jdbcType="VARCHAR" />
+
+
+	</resultMap>
+
+	<select id="selectAllModule" resultMap="selectRoleMap">
+		SELECT tm.id, tm.name, tm.url, tm.parent_id, tm.priority, tm.iconCls FROM
+		sys_module tm ORDER BY tm.priority
+	</select>
+
+
+	<select id="getModuleByPrimaryKey" resultType="com.beyondsoft.thrift.rpc.sysmodule.SysModule">
+		SELECT * FROM
+		sys_module where id=#{id}
+	</select>
+
+
+
+	<resultMap id="selectTreeNodeResultMap" type="com.beyondsoft.thrift.rpc.sysmodule.SysModule">
+		<result column="id" property="id" jdbcType="VARCHAR" />
+	</resultMap>
+	
+
+	<select id="selectTreeNode" parameterType="com.beyondsoft.thrift.rpc.sysrole.SysRole" resultMap="selectTreeNodeResultMap">
+		SELECT t.id from sys_module t inner JOIN (SELECT permission from
+		sys_role_permission where role_id=#{id}) A on A.permission=t.sn
+	</select>
+
+
+	<insert id="insertRoleUser" parameterType="com.beyondsoft.thrift.rpc.sysrole.SysUserRole">
+		insert into
+		sys_user_role values
+		(#{user_id},#{role_id})
+	</insert>
+	
+	
+	<!-- 添加角色权限 -->
+	<insert id="addRolePermission" parameterType="com.beyondsoft.thrift.rpc.sysrole.SysRolePermission">
+		insert into
+		sys_role_permission values
+		(#{id},#{role_id},#{permission})
+	</insert>
+	
+	
+	
+
+
+	<delete id="deleteRoleUserMK" parameterType="com.beyondsoft.thrift.rpc.sysrole.SysUserRole">
+	 delete from
+		sys_user_role where
+		role_id =
+		#{role_id,jdbcType=VARCHAR} and user_id=#{user_id,jdbcType=VARCHAR}
+	</delete>
+	
+	
+	<resultMap id="noAssignedUserDatagridResultMap" type="com.beyondsoft.thrift.rpc.PageFormRPC">
+		<result column="id" property="value1" jdbcType="VARCHAR" />
+		<result column="username" property="value2" jdbcType="VARCHAR" />
+		<result column="realname" property="value3" jdbcType="VARCHAR" />
+		<result column="status" property="value4" jdbcType="VARCHAR" />
+		<result column="orgName" property="value5" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	
+	<select id="noAssignedUserDatagrid" resultMap="noAssignedUserDatagridResultMap"
+		parameterType="java.util.HashMap">
+		SELECT A.id, A.username, A.realname, A.status, tor. NAME orgName FROM ( SELECT B.id, B.username, B.realname, B. STATUS, B.org_id FROM sys_user B WHERE B.id NOT IN ( SELECT t.id FROM sys_user_role tr LEFT JOIN sys_user t ON tr.user_id = t.id LEFT JOIN sys_role tro ON tro.id = tr.role_id LEFT JOIN sys_organization tor ON tor.id = t.org_id WHERE tro.id = #{id} )) A LEFT JOIN sys_organization tor ON tor.id = A.org_id 
+		LIMIT #{page},#{rows}
+	</select>
+
+
+	<select id="noAssignedUserDatagridCNT" resultType="java.lang.Long"
+		parameterType="java.util.HashMap">
+	select count(*) from (SELECT A.id, A.username, A.realname, A.status,
+	tor. NAME orgName FROM ( SELECT B.id, B.username, B.realname, B.
+	STATUS, B.org_id FROM sys_user B WHERE B.id NOT IN ( SELECT t.id FROM
+	sys_user_role tr LEFT JOIN sys_user t ON tr.user_id = t.id LEFT JOIN
+	sys_role tro ON tro.id = tr.role_id LEFT JOIN sys_organization tor ON
+	tor.id = t.org_id WHERE tro.id = #{id} )) A LEFT JOIN sys_organization
+	tor ON tor.id = A.org_id) A 
+		
+	</select>
+	
+	
+	
+		<select id="assignedUserDatagrid" resultMap="noAssignedUserDatagridResultMap"
+		parameterType="java.util.HashMap">
+		SELECT t.id,t.username,t.realname,t.status,tor.name orgName FROM sys_user_role tr LEFT JOIN sys_user t  on tr.user_id=t.id LEFT JOIN sys_role tro on tro.id=tr.role_id LEFT JOIN sys_organization tor on tor.id=t.org_id where tro.id=#{id} 
+		 LIMIT #{page},#{rows}
+	</select>
+
+
+	<select id="assignedUserDatagridCNT" resultType="java.lang.Long"
+		parameterType="java.util.HashMap">
+	select count(*) from (SELECT t.id,t.username,t.realname,t.status,tor.name orgName FROM sys_user_role tr LEFT JOIN sys_user t  on tr.user_id=t.id LEFT JOIN sys_role tro on tro.id=tr.role_id LEFT JOIN sys_organization tor on tor.id=t.org_id where tro.id=#{id}) A 
+		
+	</select>
+	
+</mapper>

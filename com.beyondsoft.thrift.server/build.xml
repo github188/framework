@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="Step.05.Generate.Zip" basedir=".">
+
+	<!-- ========== 步骤1、主要的系统环境属性 =========== -->
+	<!-- 取系统的环境变量 -->
+	<property environment="env" />
+	<property name="java.home" value="${env.JAVA_HOME}" />
+	<property name="ant.home" value="${env.ANT_HOME}" />
+
+	<!-- 主要的app环境属性 -->
+	<property name="app.name" value="com.beyondsoft.thrift.server" />
+	<property name="app.version" value="0.0.1" />
+	<property name="app.jar" value="${app.name}-${app.version}.jar" />
+	<property name="app.copyright" value=" Copyright(c) 2014 Beyondsoft(Shenzhen) Co.,Ltd All rights reserved." />
+
+	<!-- app中的src属性 -->
+	
+	<property name="src.dir" value="${basedir}/src/main/java" />
+	<property name="src.bin" value="bin" />
+	<property name="src.resource" value="${basedir}/src/main/resources" />
+	<property name="src.resource.config" value="${src.resource}/config" />
+	<property name="src.resource.ibatis" value="${src.resource}/mapper" />
+
+
+	<!-- app用到的lib -->
+	<property name="lib.dir" value="libs/" />
+
+	<!-- app的build目录中 -->
+	<property name="build.dir" value="build" />
+	<property name="build.classes" value="${build.dir}/classes" />
+	<property name="build.classes.config" value="${build.classes}/config"/>
+	<property name="build.classes.ibatis" value="${build.classes}/mapper"/>	
+	<property name="build.jar" value="${build.dir}/jar" />
+	
+
+	<!-- app的dest(destribution发布)目录 -->
+	<property name="dest.dir" value="dest" />
+	<property name="dest.bin" value="${dest.dir}/bin" />
+	<property name="dest.cfg" value="${dest.dir}/config" />
+	<property name="dest.libs" value="${dest.dir}/libs" />
+	<property name="dest.logs" value="${dest.dir}/logs" />
+	
+	<!-- app的最终输出目录 -->
+	<property name="zip.deploy.dir" value="zip" />
+	
+	<!-- 定义一个全局的classpath提供给其他在javac或java时使用 -->
+	<path id="classpath">
+		<pathelement location="${build.classes}" />
+		<pathelement path="${java.home}/lib/tools.jar" />
+		<fileset dir="${lib.dir}" id="lib.path">
+	   		<include name="**/*.jar"/>
+	    </fileset>
+	</path>
+	
+	
+	<!-- ========= 步骤2、任务 -->
+	<!-- - - - - - - - - - - - - - -->
+	<!--  target: init             -->
+	<!-- - - - - - - - - - - - - - -->
+	<target name="Step.01.Init" description="初始化：清理以前的目录并准备目录环境">
+		<!-- 清除以前的目录 -->
+		<delete dir="${build.dir}" failonerror="false" />
+		<delete dir="${dest.dir}" failonerror="false" />
+		<delete dir="${zip.deploy.dir}" failonerror="false" />
+
+		<!-- 准备目录 -->
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${build.classes}" />
+		<mkdir dir="${build.classes.config}" />
+		<mkdir dir="${build.classes.ibatis}" />
+		<mkdir dir="${build.jar}" />
+		
+		<mkdir dir="${dest.dir}" />
+		<mkdir dir="${dest.bin}" />
+		<mkdir dir="${dest.cfg}" />
+		<mkdir dir="${dest.libs}" />
+		<mkdir dir="${dest.logs}" />
+		
+		<mkdir dir="${zip.deploy.dir}" />
+		
+		<echo level="info">初始化目录环境完成。</echo>
+	</target>
+
+	
+	<!-- - - - - - - - - - - - - - -->
+	<!--  target: build            -->
+	<!-- - - - - - - - - - - - - - -->
+	<target name="Step.02.Build.Current.Application" depends="Step.01.Init" description="-> 编译当前项目源代码">
+		<javac srcdir="${src.dir}" destdir="${build.classes}" deprecation="off" debug="off" encoding="UTF-8" includeAntRuntime="false" >		
+			<classpath refid="classpath" />
+		</javac>
+		<copy todir="${build.classes.config}">
+			<fileset dir="${src.resource.config}" includes="*.xml" />
+		</copy>
+		<copy todir="${build.classes.ibatis}">
+			<fileset dir="${src.resource.ibatis}" includes="*.xml" />
+		</copy>
+		<echo level="info">编译当前应用模块完成。</echo>
+	</target>
+
+	
+	<!-- - - - - - - - - - - - - - -->
+	<!--  target: jars             -->
+	<!-- - - - - - - - - - - - - - -->
+	<target name="Step.03.Generate.JAR" depends="Step.02.Build.Current.Application" description="-> 应用程序打包：包名是应用程序名称.jar">
+		<jar basedir="${build.classes}" jarfile="${build.jar}/${app.jar}" />
+		<echo level="info">生成jar文件完成。</echo>
+	</target>
+	
+	
+	<!-- - - - - - - - - - - - - - -->
+	<!--  target: dest             -->
+	<!-- - - - - - - - - - - - - - -->
+	<target name="Step.04.Copy.to.Dest.Directory" depends="Step.03.Generate.JAR" description="-> 复制文件到发布目录">
+		<!-- copy bin 执行文件 -->
+		<copy todir="${dest.bin}">
+			<fileset dir="${src.bin}/" includes="*.bat,*.sh,*.vbs,*.ini"/>
+		</copy>
+		
+		<!-- copy cfg properties配置文件 -->
+		<copy todir="${dest.cfg}">
+			<fileset dir="${src.resource}/" includes="logback.xml,*log4j.properties,*db.properties,*config.properties"/>
+		</copy>
+
+		<!-- copy libs 第三方JAR包 -->
+		<copy todir="${dest.libs}">
+			<fileset dir="${lib.dir}" id="lib.path">
+		   		<include name="**/*.jar"/>
+		    </fileset>
+		</copy>
+		
+		<!-- copy app jar 当前项目生成的JAR包 -->
+		<copy todir="${dest.dir}">
+			<fileset dir="${build.jar}" id="lib.path">
+		   		<include name="**/*.jar"/>
+		    </fileset>
+		</copy>
+		
+		<echo level="info">输出到发布目录完成。</echo>
+	</target>
+
+	
+	<!-- - - - - - - - - - - - - - -->
+	<!--  target: zip              -->
+	<!-- - - - - - - - - - - - - - -->
+	<target name="Step.05.Generate.Zip" depends="Step.04.Copy.to.Dest.Directory" description="-> 生成ZIP压缩包">
+		<!-- zip 生成压缩包 -->
+		<zip destfile="${zip.deploy.dir}/${app.name}-${app.version}.zip" duplicate="preserve" encoding="UTF-8">  
+			<!-- prefix在指定文件夹下加入文件 -->  
+			<zipfileset dir="${dest.dir}" includes="**/*.*"/>  
+		</zip> 
+		<echo level="info">生成ZIP压缩包完成。</echo>
+	</target>
+	
+</project>

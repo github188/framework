@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+  PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+  "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+	<properties resource="db.properties" />
+
+	<!-- targetRuntime:生成代码的运行环境。 -->
+	<context id="server" targetRuntime="Ibatis3">
+		<!-- 此处是将Example改名为Criteria -->
+		<plugin type="org.mybatis.generator.plugins.RenameExampleClassPlugin">
+			<property name="searchString" value="Example$" />
+			<property name="replaceString" value="Criteria" />
+		</plugin>
+
+		<plugin type="org.mybatis.generator.plugins.EqualsHashCodePlugin" />
+
+		<commentGenerator>
+			<!-- true:去掉MyBatis生成器的注解信息 -->
+			<property name="suppressAllComments" value="false" />
+			<property name="suppressDate" value="true" />
+		</commentGenerator>
+
+		<!-- 数据库配置 -->
+		<jdbcConnection driverClass="${jdbc.driver}"
+			connectionURL="${jdbc.url}" userId="${jdbc.user}" password="${jdbc.password}">
+		</jdbcConnection>
+
+
+		<javaTypeResolver>
+			<property name="forceBigDecimals" value="false" />
+		</javaTypeResolver>
+
+
+		<!-- 实体类 -->
+		<javaModelGenerator targetPackage="com.beyondsoft.thrift.server.model"
+			targetProject="com.beyondsoft.thrift.server/src/main/java">
+			<property name="enableSubPackages" value="true" />
+			<property name="trimStrings" value="true" />
+		</javaModelGenerator>
+ 		
+
+		<!-- 实体类SQL映射文件 -->
+		<sqlMapGenerator targetPackage="mapper"
+			targetProject="com.beyondsoft.thrift.server/src/main//resources">
+			<property name="enableSubPackages" value="true" />
+		</sqlMapGenerator>
+
+		<!-- 接口 -->
+		<javaClientGenerator type="XMLMAPPER"
+			targetPackage="com.beyondsoft.thrift.server.dao" targetProject="com.beyondsoft.thrift.server/src/main/java">
+			<property name="enableSubPackages" value="true" />
+		</javaClientGenerator>
+
+		<!-- 添加其它的数据库表 -->	
+		<table tableName="user" domainObjectName="UserEntity">
+			<columnOverride column="USER_ID" property="pid" javaType="java.lang.Integer" jdbcType="TINYINT" />
+			<columnOverride column="USER_NAME" property="zdDizhi" javaType="java.lang.String" jdbcType="VARCHAR" />
+			<columnOverride column="PASSWORD" property="zdMingCheng" javaType="java.lang.String" jdbcType="VARCHAR" />
+			<columnOverride column="IMEI" property="yongDianHangYe"  javaType="java.lang.String" jdbcType="VARCHAR"/>
+			<columnOverride column="MOBILE_NUMBER" property="yongHuBianHao" javaType="java.lang.String" jdbcType="VARCHAR"/>
+			<columnOverride column="SEX" property="yongHuMingCheng"  javaType="java.lang.String" jdbcType="VARCHAR"/>
+			<columnOverride column="NIKENAME" property="jiLiangDianMingCheng"  javaType="java.lang.String" jdbcType="VARCHAR"/>
+			<columnOverride column="ICON" property="changJia"  javaType="java.lang.String" jdbcType="VARCHAR"/>
+			<columnOverride column="ADDRESS" property="tongXunShang"  javaType="java.lang.String" jdbcType="VARCHAR"/>
+			<columnOverride column="LNG" property="qunZuId"  javaType="java.lang.String" jdbcType="VARCHAR"/>
+			<columnOverride column="LAT" property="suoShuJiGouId"  javaType="java.lang.String" jdbcType="VARCHAR"/>
+			<columnOverride column="LAT" property="chongBoJianGe"  javaType="java.lang.String" jdbcType="VARCHAR"/>
+		</table>
+
+
+	</context>
+</generatorConfiguration>

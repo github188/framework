@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beyondsoft.thrift.server.mapper.SysLogMapper" >
+  <resultMap id="BaseResultMap" type="com.beyondsoft.thrift.rpc.syslog.SysLog" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="sysuser_id" property="sysuserId" jdbcType="VARCHAR" />
+    <result column="loglevel" property="loglevel" jdbcType="INTEGER" />
+    <result column="message" property="message" jdbcType="LONGVARCHAR" />
+    <result column="note" property="note" jdbcType="LONGVARCHAR" />
+    
+  </resultMap>
+  
+  <sql id="Base_Column_List" >
+    id, create_time, sysuser_id, loglevel,message, note
+  </sql>
+  
+  <select id="selectByMap" resultMap="BaseResultMap" parameterType="java.util.HashMap" >
+    select 
+    <include refid="Base_Column_List" />
+    from sys_log where 1=1 LIMIT #{page},#{rows}
+  </select>
+  
+   <select id="selectAllCnt"  resultType="java.lang.Long">
+    select 
+    count(*)
+    from sys_log where 1=1 
+  </select>
+  
+  
+  <insert id="insert" parameterType="com.beyondsoft.thrift.rpc.syslog.SysLog" >
+    insert into sys_log
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="sysuserId != null" >
+        sysuser_id,
+      </if>
+      <if test="loglevel != null" >
+        loglevel,
+      </if>
+      <if test="message != null" >
+        message,
+      </if>
+      <if test="note != null" >
+        note,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="sysuserId != null" >
+        #{sysuserId,jdbcType=VARCHAR},
+      </if>
+      <if test="loglevel != null" >
+        #{loglevel,jdbcType=INTEGER},
+      </if>
+      <if test="message != null" >
+        #{message,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="note != null" >
+        #{note,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+</mapper>

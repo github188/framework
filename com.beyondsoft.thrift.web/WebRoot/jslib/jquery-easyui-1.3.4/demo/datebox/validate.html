@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Validate DateBox - jQuery EasyUI Demo</title>
+	<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+	<link rel="stylesheet" type="text/css" href="../demo.css">
+	<script type="text/javascript" src="../../jquery.min.js"></script>
+	<script type="text/javascript" src="../../jquery.easyui.min.js"></script>
+</head>
+<body>
+	<h2>Validate DateBox</h2>
+	<div class="demo-info">
+		<div class="demo-tip icon-tip"></div>
+		<div>When the selected date is greater than specified date. The field validator will raise an error.</div>
+	</div>
+	<div style="margin:10px 0;"></div>
+	<input name="s1" id="s1" class="easyui-datebox"  invalidMessage="开始时间必须小于等于结束时间" missingMessage="开始日期必须填写" required data-options="editable:false,formatter:myformatter,parser:myparser,onSelect: function(date){
+	
+	if($('#s2').datebox('getValue')=='')
+	{
+		$('#s2').datebox('enable');//如果是空串说明是第一次操作，触发第二个datebox打开
+	}
+	else
+	{
+	 var s2=$('#s2').datebox('getValue');
+	 var s1=$('#s1').datebox('getValue');
+	 if(s2<=s1)
+	 {
+	 
+	 }
+	
+	}
+	
+	}"></input>&nbsp;至&nbsp;
+	<input name="s2" id="s2" class="easyui-datebox"   missingMessage="结束日期必须填写" required data-options="disabled:true,editable:false,formatter:myformatter,parser:myparser" validType="TimeCheck['s1']" invalidMessage="结束时间必须大于开始时间"></input>
+	<script>
+		$.extend($.fn.validatebox.defaults.rules, {
+			md: {
+				validator: function(value, param){
+					var d1 = $.fn.datebox.defaults.parser(param[0]);
+					var d2 = $.fn.datebox.defaults.parser(value);
+					return d2<=d1;
+				},
+				message: '所选日期必须小于等于{0}.'
+			}
+		, TimeCheck:{
+		    validator:function(value,param){     
+		        var s = $("input[name="+param[0]+"]").val();
+		        //因为日期是统一格式的所以可以直接比较字符串 否则需要Date.parse(_date)转换
+		        return value>=s;
+		       },
+		       message:'非法数据'
+		      }
+		})
+		
+			function myformatter(date){
+			var y = date.getFullYear();
+			var m = date.getMonth()+1;
+			var d = date.getDate();
+			return y+'-'+(m<10?('0'+m):m)+'-'+(d<10?('0'+d):d);
+		}
+		function myparser(s){
+			if (!s) return new Date();
+			var ss = (s.split('-'));
+			var y = parseInt(ss[0],10);
+			var m = parseInt(ss[1],10);
+			var d = parseInt(ss[2],10);
+			if (!isNaN(y) && !isNaN(m) && !isNaN(d)){
+				return new Date(y,m-1,d);
+			} else {
+				return new Date();
+			}
+		}
+	</script>
+</body>
+</html>
