@@ -1,5 +1,6 @@
 package com.beyondsoft.thrift.web.controller;
 
+
 import java.util.Map;
 
 import javax.annotation.Resource;
